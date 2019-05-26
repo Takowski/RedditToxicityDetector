@@ -1,3 +1,6 @@
 
 *.xml
 *.iml
+PersonalSettingStuff.py
+*.csv
+*.pyc
