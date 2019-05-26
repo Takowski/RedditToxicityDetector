@@ -14,13 +14,13 @@ if __name__ == '__main__':
                     user_agent=user_agent,
                     username=username)
     print('created praw reddit object')
-    filename = 'submissiondatabase' + str(time.time()) + '.csv'
+    filename = 'submissiondatabasetopmonthnorepl' + str(time.time()) + '.csv'
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['id', 'locked', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'comments_body']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         print('csv created and wrote header, entering submission loop')
-        for i, submission in enumerate(reddit.subreddit('blackpeopletwitter').top('all', limit=None)):
+        for i, submission in enumerate(reddit.subreddit('blackpeopletwitter').top('month', limit=None)):
             start_submission = time.time()
             if submission.stickied:
                 continue

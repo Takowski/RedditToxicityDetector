@@ -3,6 +3,7 @@ import praw
 import csv
 import time
 import random
+import numpy as np
 
 
 def createBalancedData():
@@ -123,12 +124,12 @@ def createBalancedData():
     # print(idnumbers3NL)
     # print(idnumbers4NL)
     # print(idnumbers5NL)
-
-    ratio1 = len(idnumbers1NL) / len(idnumbers1)
-    ratio2 = len(idnumbers2NL) / len(idnumbers2)
-    ratio3 = len(idnumbers3NL) / len(idnumbers3)
-    ratio4 = len(idnumbers4NL) / len(idnumbers4)
-    ratio5 = len(idnumbers5NL) / len(idnumbers5)
+    scaling = 0.85
+    ratio1 = len(idnumbers1NL) / len(idnumbers1) * scaling
+    ratio2 = len(idnumbers2NL) / len(idnumbers2) * scaling
+    ratio3 = len(idnumbers3NL) / len(idnumbers3) * scaling
+    ratio4 = len(idnumbers4NL) / len(idnumbers4) * scaling
+    ratio5 = len(idnumbers5NL) / len(idnumbers5) * scaling
     print(everything.shape)
     w = 0
 
@@ -187,5 +188,24 @@ def createBalancedData():
 if __name__ == '__main__':
     db = pd.read_csv("submissiondatabase1558829476.6550424.csv")
     newbd = createBalancedData()
+    lockedlist = newbd['locked'].to_list()
+    locked_count = 0
+    nonlocked_count = 0
+    totalcount = 0
+    for status in lockedlist:
+        if status == True:
+            locked_count += 1
+        if status == False:
+            nonlocked_count += 1
+        totalcount += 1
+    print('locked_count')
+    print(locked_count)
+    print('nonlocked_count')
+    print(nonlocked_count)
+    print('totalcount')
+    print(totalcount)
+    print(newbd.shape)
+    newbd.to_csv('balanced_submissiondatabase1558829476.6550424.csv', sep='\t', encoding='utf-8')
+
 
 
