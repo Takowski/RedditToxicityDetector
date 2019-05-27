@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     word_emb_dim = 25
 
-    filename = 'C:/Users/takow/Documents/GitHub/RedditToxicityDetector/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
+    filename = 'C:/Users/Kailhan/PycharmProjects/RedditToxicityDetector/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
     print(filename)
     f = open(filename, encoding="utf8")
     for line in f:
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
-    history = model.fit(X_train_padded, y_train, nb_epoch=5, batch_size=64)
+    history = model.fit(X_train_padded, y_train, nb_epoch=20, batch_size=64)
     # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
     scores = model.evaluate(X_test_padded, y_test, verbose=0)
     # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)
@@ -90,4 +90,4 @@ if __name__ == '__main__':
     print(classification_report(y_test, y_pred_bool))
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
-    model.save('lstm_' + c_time + '.h5')
+    model.save('lstm_.h5')
