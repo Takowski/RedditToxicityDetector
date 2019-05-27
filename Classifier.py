@@ -11,7 +11,7 @@ from keras.layers import Embedding
 if __name__ == '__main__':
 
     # fieldnames = ['id', 'locked', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'comments_body']
-    db = pd.read_csv("submissiondatabase1558829476.6550424.csv")
+    db = pd.read_csv("balanced_submissiondatabase1558829476.6550424.csv")
 
     print(db.comments_body)
 

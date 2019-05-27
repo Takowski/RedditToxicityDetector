@@ -188,24 +188,26 @@ def createBalancedData():
 if __name__ == '__main__':
     db = pd.read_csv("submissiondatabase1558829476.6550424.csv")
     newbd = createBalancedData()
-    lockedlist = newbd['locked'].to_list()
-    locked_count = 0
-    nonlocked_count = 0
-    totalcount = 0
-    for status in lockedlist:
-        if status == True:
-            locked_count += 1
-        if status == False:
-            nonlocked_count += 1
-        totalcount += 1
-    print('locked_count')
-    print(locked_count)
-    print('nonlocked_count')
-    print(nonlocked_count)
-    print('totalcount')
-    print(totalcount)
-    print(newbd.shape)
     newbd.to_csv('balanced_submissiondatabase1558829476.6550424.csv', sep='\t', encoding='utf-8')
+    db = pd.read_csv("balanced_submissiondatabase1558829476.6550424.csv")
+
+    # lockedlist = newbd['locked'].to_list()
+    # locked_count = 0
+    # nonlocked_count = 0
+    # totalcount = 0
+    # for status in lockedlist:
+    #     if status == True:
+    #         locked_count += 1
+    #     if status == False:
+    #         nonlocked_count += 1
+    #     totalcount += 1
+    # print('locked_count')
+    # print(locked_count)
+    # print('nonlocked_count')
+    # print(nonlocked_count)
+    # print('totalcount')
+    # print(totalcount)
+    # print(newbd.shape)
 
 
 
