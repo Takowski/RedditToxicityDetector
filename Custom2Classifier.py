@@ -1,13 +1,16 @@
-from keras.preprocessing import sequence
+import time
+
+import numpy as np
 import pandas as pd
-from keras.layers import Embedding, Dense
+from keras.layers import Dense
+from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.models import Sequential
-from keras.preprocessing import sequence
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from numpy import asarray
 from numpy import zeros
+from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
@@ -21,9 +24,15 @@ if __name__ == '__main__':
     train, test = train_test_split(data, test_size=0.2, random_state=1)
     X_train = train['comments_body'].to_list()
     X_test = test['comments_body'].to_list()
-    y_train = train['locked']
-    y_test = test['locked']
+    y_train = train['locked'].values
+    y_test = test['locked'].values
 
+    print('data')
+    print(data['locked'].values)
+    print(type(data['locked'].values))
+    print('train')
+    print(y_train)
+    print(type(y_train))
 
     t = Tokenizer()
     t.fit_on_texts(data['comments_body'].values)
@@ -31,12 +40,18 @@ if __name__ == '__main__':
 
 
     encoded_docs = t.texts_to_sequences(data['comments_body'].values)
+    X_train_seq = t.texts_to_sequences(X_train)
+    X_test_seq = t.texts_to_sequences(X_test)
     # print('encoded')
 
-    max_review_length = 5000
+    max_review_length = 10
     # max_length = max([len(i) for i in X_combined])\
     max_length = max_review_length
     padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
+    X_train_padded = pad_sequences(X_train_seq, maxlen=max_length, padding='post')
+    X_test_padded = pad_sequences(X_test_seq, maxlen=max_length, padding='post')
+
+
 
     embeddings_index = dict()
 
@@ -69,11 +84,20 @@ if __name__ == '__main__':
     model = Sequential()
     model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
                   trainable=False))
-    model.add(LSTM(100))
+    model.add(LSTM(4))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
-    model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
-
-    scores = model.evaluate(X_test, y_test, verbose=0)
+    history = model.fit(X_train_padded, y_train, nb_epoch=1, batch_size=64)
+    # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
+    scores = model.evaluate(X_test_padded, y_test, verbose=0)
+    # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)
     print("Accuracy: %.2f%%" % (scores[1] * 100))
+
+    y_pred = model.predict(X_test_padded, batch_size=64, verbose=1)
+    y_pred_bool = np.argmax(y_pred, axis=1)
+
+    print(classification_report(y_test, y_pred_bool))
+
+    c_time = str(time.strftime("%x %X", time.gmtime()))
+    model.save('lstm_' + c_time + '.h5')
