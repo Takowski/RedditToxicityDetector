@@ -240,7 +240,6 @@ def createBalancedData():
     # print(everything.shape, w)
     # print(tussendata.shape, w)
     #
-    # print(tussendata)
     # everything = everything.append(tussendata, ignore_index=True)
     # print(everything.shape, w)
 
@@ -329,9 +328,11 @@ def createBalancedData():
                 for i in range(amnt_dupl):
                     tussendata=tussendata.append(row, ignore_index=True)
     #'call database and 5x idnumbers1 verdubbelen, 3x idnumbers2 en 2x idnumbers3'
-    everything = everything.append(tussendata, ignore_index=True)
-    print(everything.shape)
+    print(tussendata.head())
+    print(everything.head())
 
+    everything = everything.append(tussendata, ignore_index=True)
+    # print(everything.shape)
 
     comLockedCount = 0
     comNotLockedCount = 0
@@ -346,12 +347,22 @@ def createBalancedData():
 
     print(comLockedCount)
     print(comNotLockedCount)
+    print(tussendata.head())
+    print(everything.head())
+
+
+
     return(everything)
 
 if __name__ == '__main__':
     db = pd.read_csv("submissiondatabase1558829476.6550424.csv")
+
     newbd = createBalancedData()
-    newbd.to_csv('balanced_submissiondatabase1558829476.6550424.csv', sep='\t', encoding='utf-8')
-    db = pd.read_csv("balanced_submissiondatabase1558829476.6550424.csv", error_bad_lines=False)
+    newbd.to_csv('balanced_submissiondatabase1558829476.6550424.csv', encoding='utf-8', index=False)
+    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424.csv", error_bad_lines=False, encoding='utf8')
+    print(data.head())
 
 
+# everything.to_csv('balanced_submissiondatabase1558829476.6550424.csv', encoding='utf-8', index=False)
+#     data = pd.read_csv("balanced_submissiondatabase1558829476.6550424.csv", error_bad_lines=False, encoding='utf8')
+#     print(data.head())
