@@ -81,7 +81,7 @@ def get_roc_curve(model, X, y):
     return fpr, tpr
 
 if __name__ == '__main__':
-    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv.csv")
+    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv")
     data.comments_body = data.comments_body.astype(str)
     data.comments_body.apply(lambda x: preprocess_reviews(x))
     data_clean = data.loc[:, ['locked', 'comments_body']]
