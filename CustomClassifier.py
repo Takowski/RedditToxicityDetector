@@ -1,20 +1,22 @@
-import pandas as pd
-import numpy as np
-from numpy import asarray
-from numpy import zeros
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM
-from keras.layers import Flatten
-from keras.layers import Embedding
-from matplotlib import pyplot
-from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
-from sklearn.metrics import classification_report
 import re
 import time
+
+import nltk
+import numpy as np
+import pandas as pd
 from keras import backend as K
+from keras.layers import Dense
+from keras.layers import Embedding
+from keras.layers import LSTM
+from keras.models import Sequential
+from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.text import Tokenizer
+from matplotlib import pyplot
+from numpy import asarray
+from numpy import zeros
+from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+
 
 def recall_m(y_true, y_pred):
         true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
@@ -33,41 +35,35 @@ def f1_m(y_true, y_pred):
     recall = recall_m(y_true, y_pred)
     return 2*((precision*recall)/(precision+recall+K.epsilon()))
 
-def clean_text(text):
-    text = re.sub(r"what's", "what is ", text)
-    text = re.sub(r"\'s", " ", text)
-    text = re.sub(r"\'ve", " have ", text)
-    text = re.sub(r"n't", " not ", text)
-    text = re.sub(r"i'm", "i am ", text)
-    text = re.sub(r"\'re", " are ", text)
-    text = re.sub(r"\'d", " would ", text)
-    text = re.sub(r"\'ll", " will ", text)
-    text = re.sub(r",", " ", text)
-    text = re.sub(r"\.", " ", text)
-    text = re.sub(r"!", " ! ", text)
-    text = re.sub(r"\/", " ", text)
-    text = re.sub(r"\^", " ^ ", text)
-    text = re.sub(r"\+", " + ", text)
-    text = re.sub(r"\-", " - ", text)
-    text = re.sub(r"\=", " = ", text)
-    text = re.sub(r"'", " ", text)
-    text = re.sub(r"(\d+)(k)", r"\g<1>000", text)
-    text = re.sub(r":", " : ", text)
-    text = re.sub(r" e g ", " eg ", text)
-    text = re.sub(r" b g ", " bg ", text)
-    text = re.sub(r" u s ", " american ", text)
-    text = re.sub(r"\0s", "0", text)
-    text = re.sub(r" 9 11 ", "911", text)
-    text = re.sub(r"e - mail", "email", text)
-    text = re.sub(r"j k", "jk", text)
-    text = re.sub(r"\s{2,}", " ", text)
-    return text
+
+def preprocess_reviews(reviews):
+    REPLACE_NO_SPACE = re.compile("(\.)|(\;)|(\:)|(\!)|(\')|(\?)|(\,)|(\")|(\()|(\))|(\[)|(\])")
+    REPLACE_WITH_SPACE = re.compile("(<br\s*/><br\s*/>)|(\-)|(\/)")
+    default_stop_words = nltk.corpus.stopwords.words('english')
+    stopwords = set(default_stop_words)
+
+    reviews = [REPLACE_NO_SPACE.sub("", line.lower()) for line in reviews]
+    reviews = [REPLACE_WITH_SPACE.sub(" ", line) for line in reviews]
+    reviews = [RemoveStopWords(line, stopwords) for line in reviews]
+
+    return reviews
+
+def RemoveStopWords(line, stopwords):
+    words = []
+    for word in line.split(" "):
+        word = word.strip()
+        if word not in stopwords and word != "" and word != "&":
+            words.append(word)
+
+    return " ".join(words)
 
 if __name__ == '__main__':
 
     # fieldnames = ['id', 'locked', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'comments_body']
     data = pd.read_csv("submissiondatabase1558829476.6550424.csv", encoding='utf8')
-    data.comments_body.apply(lambda x: clean_text(str(x)))
+    print(data.head())
+    data.comments_body = data.comments_body.astype(str)
+    data.comments_body.apply(lambda x: preprocess_reviews(x))
     data_clean = data.loc[:, ['locked', 'comments_body']]
     print(data_clean.head())
     train, test = train_test_split(data_clean, test_size=0.2, random_state=1)
@@ -79,7 +75,7 @@ if __name__ == '__main__':
     X_combined = X_train + X_test
     print(X_combined)
 
-    t = Tokenizer()
+    t = Tokenizer(num_words=10000)
     t.fit_on_texts(X_combined)
     vocab_size = len(t.word_index) + 1
     encoded_docs = t.texts_to_sequences(X_combined)
@@ -91,7 +87,6 @@ if __name__ == '__main__':
     embeddings_index = dict()
 
     word_emb_dim = 25
-    lstm_out = 200
 
     filename = 'C:/Users/Kailhan/PycharmProjects/RedditToxicityDetector/glove.twitter.27B/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
     print(filename)
@@ -115,7 +110,7 @@ if __name__ == '__main__':
     e = Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=padded_docs.shape[1],
                   trainable=False)
     model.add(e)
-    model.add(LSTM(word_emb_dim, dropout=0.2, recurrent_dropout=0.2))
+    model.add(LSTM(32))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc', f1_m, precision_m, recall_m])
     print(model.summary())
@@ -124,7 +119,7 @@ if __name__ == '__main__':
     X_train = pad_sequences(t.texts_to_sequences(X_train), maxlen=max_length)
     X_test = pad_sequences(t.texts_to_sequences(X_test), maxlen=max_length)
 
-    history = model.fit(X_train, y_train, epochs=1, verbose=1)
+    history = model.fit(X_train, y_train, epochs=3, verbose=1, validation_data=(X_test, y_test)),
     # evaluate the model
     train_loss, train_acc, train_f1_score, train_precision, train_recall = model.evaluate(X_train, y_train, verbose=1)
     test_loss, test_acc, test_f1_score, test_precision, test_recall = model.evaluate(X_test, y_test, verbose=1)
