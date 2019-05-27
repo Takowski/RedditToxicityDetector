@@ -9,3 +9,4 @@ glove.twitter.27B/glove.twitter.27B.50d.txt
 glove.twitter.27B/glove.twitter.27B.200d.txt
 glove.twitter.27B/glove.twitter.27B.100d.txt
 glove.twitter.27B/glove.twitter.27B.25d.txt
+*.txt

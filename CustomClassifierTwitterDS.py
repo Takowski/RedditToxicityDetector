@@ -58,19 +58,21 @@ def RemoveStopWords(line, stopwords):
     return " ".join(words)
 
 if __name__ == '__main__':
-    # fieldnames = ['id', 'locked', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'comments_body']
-    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv", encoding='utf8')
+    # fieldnames = ['id', 'target', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'text']
+    data = pd.read_csv("training.1600000.processed.noemoticon.csv", encoding='utf8')
+    data = data[data.target != 2]
+
     print(data.head())
-    data.comments_body = data.comments_body.astype(str)
-    data.comments_body.apply(lambda x: preprocess_reviews(x))
-    data_clean = data.loc[:, ['locked', 'comments_body']]
+    data.text = data.text.astype(str)
+    data.text.apply(lambda x: preprocess_reviews(x))
+    data_clean = data.loc[:, ['target', 'text']]
     print('cleaned')
     print(data_clean.head())
     train, test = train_test_split(data_clean, test_size=0.2, random_state=1)
-    X_train = train['comments_body'].to_list()
-    X_test = test['comments_body'].to_list()
-    y_train = train['locked'].to_list()
-    y_test = test['locked'].to_list()
+    X_train = train['text'].to_list()
+    X_test = test['text'].to_list()
+    y_train = train['target'].to_list()
+    y_test = test['target'].to_list()
 
     X_combined = X_train + X_test
     print(X_combined)
