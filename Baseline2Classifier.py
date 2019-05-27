@@ -1,10 +1,22 @@
+import time
+
+import numpy as np
 from keras.datasets import imdb
 from keras.layers import Dense
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.models import Sequential
 from keras.preprocessing import sequence
-from numpy import array
+from numpy import asarray
+from numpy import zeros
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
 import time
 from sklearn.datasets import make_circles
 from sklearn.metrics import accuracy_score
@@ -30,27 +42,43 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
+    # # fieldnames = ['id', 'class', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'text']
+    data = pd.read_csv("movie-pang02.csv")
+    data = data.replace('Pos', '1')
+    data = data.replace('Neg', '0')
 
-    (X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=)
+    print(data.head())
 
-    t = Tokenizer()
-    t.fit_on_texts(X_train + X_test)
+    # data = data[data.class != 2]
+    # data_clean = data['class'].replace(4, 1)
+    # print(data.head())
+    data.text = data.text.astype(str)
+    # data_clean = data[['class', 'text']]
+    # data.text.apply(lambda x: preprocess_reviews(x))
+    # data.to_csv('twitter_cleaned.csv')
+    print('cleaned')
+    print(data.head())
+    train, test = train_test_split(data, test_size=0.2, random_state=1)
+    X_train = train['text'].to_list()
+    X_test = test['text'].to_list()
+    y_train = train['class']
+    y_test = test['class']
+
+    print(y_train)
+    t = Tokenizer(num_words=5000)
+    t.fit_on_texts(data['text'].values)
     vocab_size = len(t.word_index) + 1
-    print(vocab_size)
 
-    encoded_docs = t.texts_to_sequences(X_train + X_test)
+    max_review_length = 1000
+    max_length = max_review_length
+
+    encoded_docs = t.texts_to_sequences(data['text'].values)
     X_train_seq = t.texts_to_sequences(X_train)
     X_test_seq = t.texts_to_sequences(X_test)
     print('encoded')
 
-    max_review_length = 10
-    # max_length = max([len(i) for i in X_combined])\
-    max_length = max_review_length
-    padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
     X_train_padded = pad_sequences(X_train_seq, maxlen=max_length, padding='post')
     X_test_padded = pad_sequences(X_test_seq, maxlen=max_length, padding='post')
-    print(len(X_train_padded))
-
 
     embeddings_index = dict()
 
@@ -73,22 +101,16 @@ if __name__ == '__main__':
         if embedding_vector is not None:
             embedding_matrix[i] = embedding_vector
 
-
-    # X_train = t.texts_to_sequences(X_train)
-    # X_test = t.texts_to_sequences(X_test)
-    # X_train = sequence.pad_sequences(X_train, maxlen=max_review_length)
-    # X_test = sequence.pad_sequences(X_test, maxlen=max_review_length)
-
     embedding_vector_length = word_emb_dim
     model = Sequential()
     model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
-                  trainable=False))
+                        trainable=False))
     model.add(LSTM(128))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
 
-    history = model.fit(X_train_padded, y_train, nb_epoch=100, batch_size=64)
+    history = model.fit(X_train_padded, y_train, nb_epoch=20, batch_size=64)
     # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
     scores = model.evaluate(X_test_padded, y_test, verbose=0)
     # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)
@@ -103,9 +125,9 @@ if __name__ == '__main__':
     model.save('lstm_.h5')
 
     # predict probabilities for test set
-    yhat_probs = model.predict(X_test, verbose=0)
+    yhat_probs = model.predict(X_test_padded, verbose=0)
     # predict crisp classes for test set
-    yhat_classes = model.predict_classes(X_test, verbose=0)
+    yhat_classes = model.predict_classes(X_test_padded, verbose=0)
     # reduce to 1d array
     yhat_probs = yhat_probs[:, 0]
     yhat_classes = yhat_classes[:, 0]

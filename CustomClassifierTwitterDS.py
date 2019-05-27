@@ -88,6 +88,35 @@ if __name__ == '__main__':
     print('encoded')
     max_length = max([len(i) for i in data['text'].values])
     padded_docs = pad_sequences(encoded_docs, maxlen=max_length)
+    # fieldnames = ['id', 'locked', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'comments_body']
+    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv", encoding='utf8')
+    print(data.head())
+    data.comments_body = data.comments_body.astype(str)
+    # data.comments_body.apply(lambda x: preprocess_reviews(x))
+    # data_clean = data.loc[['locked', 'comments_body']]
+
+    train, test = train_test_split(data, test_size=0.2, random_state=1)
+    X_train = train['comments_body'].to_list()
+    X_test = test['comments_body'].to_list()
+    y_train = train['locked'].values
+    y_test = test['locked'].values
+    t = Tokenizer()
+    t.fit_on_texts(data['comments_body'].values)
+    vocab_size = len(t.word_index) + 1
+    print(vocab_size)
+
+    encoded_docs = t.texts_to_sequences(data['comments_body'].values)
+    X_train_seq = t.texts_to_sequences(X_train)
+    X_test_seq = t.texts_to_sequences(X_test)
+    print('encoded')
+
+    max_review_length = 1000
+    # max_length = max([len(i) for i in X_combined])\
+    max_length = max_review_length
+    padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
+    X_train_padded = pad_sequences(X_train_seq, maxlen=max_length, padding='post')
+    X_test_padded = pad_sequences(X_test_seq, maxlen=max_length, padding='post')
+
 
 
     embeddings_index = dict()
@@ -111,45 +140,62 @@ if __name__ == '__main__':
         if embedding_vector is not None:
             embedding_matrix[i] = embedding_vector
 
-    # define model
+
+    # X_train = t.texts_to_sequences(X_train)
+    # X_test = t.texts_to_sequences(X_test)
+    # X_train = sequence.pad_sequences(X_train, maxlen=max_review_length)
+    # X_test = sequence.pad_sequences(X_test, maxlen=max_review_length)
+
+    embedding_vector_length = word_emb_dim
     model = Sequential()
-    e = Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=padded_docs.shape[1],
-                  trainable=False)
-    model.add(e)
-    model.add(SpatialDropout1D(0.4))
-    model.add(LSTM(32, dropout=0.2, recurrent_dropout=0.2))
+    model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
+                  trainable=False))
+    model.add(LSTM(128))
     model.add(Dense(1, activation='sigmoid'))
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc', f1_m, precision_m, recall_m])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
-    # fit the model
 
-    X_train = pad_sequences(t.texts_to_sequences(X_train), maxlen=max_length)
-    X_test = pad_sequences(t.texts_to_sequences(X_test), maxlen=max_length)
-    # y_train = pad_sequences(t.texts_to_sequences(y_train), maxlen=max_length)
-    # y_test = pad_sequences(t.texts_to_sequences(y_test), maxlen=max_length)
+    history = model.fit(X_train_padded, y_train, nb_epoch=20, batch_size=64)
+    # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
+    scores = model.evaluate(X_test_padded, y_test, verbose=0)
+    # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)
+    print("Accuracy: %.2f%%" % (scores[1] * 100))
 
-    # history = model.fit(X_train, y_train, epochs=3, verbose=1, validation_data=(X_test, y_test)),
-    history = model.fit(X_train, y_train, epochs=3, verbose=1),
-    # evaluate the model
-    train_loss, train_acc, train_f1_score, train_precision, train_recall = model.evaluate(X_train, y_train, verbose=1)
-    test_loss, test_acc, test_f1_score, test_precision, test_recall = model.evaluate(X_test, y_test, verbose=1)
-    print('Train: %.3f, Test: %.3f' % (train_acc, test_acc))
-    y_pred = model.predict(X_test, batch_size=64, verbose=1)
+    y_pred = model.predict(X_test_padded, batch_size=64, verbose=1)
     y_pred_bool = np.argmax(y_pred, axis=1)
 
     print(classification_report(y_test, y_pred_bool))
-    # plot loss during training
-    # pyplot.subplot(211)
-    # pyplot.title('Loss')
-    # pyplot.plot(history.history['loss'], class='train')
-    # pyplot.plot(history.history['val_loss'], class='test')
-    # pyplot.legend()
-    # # plot accuracy during training
-    # pyplot.subplot(212)
-    # pyplot.title('Accuracy')
-    # pyplot.plot(history.history['acc'], class='train')
-    # pyplot.plot(history.history['val_acc'], class='test')
-    # pyplot.legend()
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
-    model.save('lstm_' + c_time + '.h5')
+    model.save('lstm_.h5')
+
+    # predict probabilities for test set
+    yhat_probs = model.predict(X_test_padded, verbose=0)
+    # predict crisp classes for test set
+    yhat_classes = model.predict_classes(X_test_padded, verbose=0)
+    # reduce to 1d array
+    yhat_probs = yhat_probs[:, 0]
+    yhat_classes = yhat_classes[:, 0]
+
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_test, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # precision tp / (tp + fp)
+    precision = precision_score(y_test, yhat_classes)
+    print('Precision: %f' % precision)
+    # recall: tp / (tp + fn)
+    recall = recall_score(y_test, yhat_classes)
+    print('Recall: %f' % recall)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_test, yhat_classes)
+    print('F1 score: %f' % f1)
+
+    # kappa
+    kappa = cohen_kappa_score(y_test, yhat_classes)
+    print('Cohens kappa: %f' % kappa)
+    # ROC AUC
+    auc = roc_auc_score(y_test, yhat_probs)
+    print('ROC AUC: %f' % auc)
+    # confusion matrix
+    matrix = confusion_matrix(y_test, yhat_classes)
+    print(matrix)
