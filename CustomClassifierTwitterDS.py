@@ -5,13 +5,13 @@ import nltk
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.layers import Dense, SpatialDropout1D
+from keras.layers import Dense
 from keras.layers import Embedding
 from keras.layers import LSTM
+from keras.layers import SpatialDropout1D
 from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-from matplotlib import pyplot
 from numpy import asarray
 from numpy import zeros
 from sklearn.metrics import classification_report

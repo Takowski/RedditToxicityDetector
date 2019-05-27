@@ -31,7 +31,7 @@ from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
 
-    (X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=)
+    (X_train, y_train), (X_test, y_test) = imdb.load_data(num_words=1000)
 
     t = Tokenizer()
     t.fit_on_texts(X_train + X_test)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     model = Sequential()
     model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
                   trainable=False))
-    model.add(LSTM(128))
+    model.add(LSTM(100))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
