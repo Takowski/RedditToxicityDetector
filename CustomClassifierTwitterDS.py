@@ -5,7 +5,7 @@ import nltk
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.layers import Dense
+from keras.layers import Dense, SpatialDropout1D
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.models import Sequential
@@ -58,32 +58,35 @@ def RemoveStopWords(line, stopwords):
     return " ".join(words)
 
 if __name__ == '__main__':
-    # fieldnames = ['id', 'target', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'text']
-    data = pd.read_csv("training.1600000.processed.noemoticon.csv", encoding='utf8')
-    data = data[data.target != 2]
+    # # fieldnames = ['id', 'class', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'text']
+    data = pd.read_csv("movie-pang02.csv")
+    data = data.replace('Pos', '1')
+    data = data.replace('Neg', '0')
 
     print(data.head())
+
+    # data = data[data.class != 2]
+    # data_clean = data['class'].replace(4, 1)
+    # print(data.head())
     data.text = data.text.astype(str)
+    data_clean = data[['class', 'text']]
     data.text.apply(lambda x: preprocess_reviews(x))
-    data_clean = data.loc[:, ['target', 'text']]
+    data.to_csv('twitter_cleaned.csv')
     print('cleaned')
     print(data_clean.head())
     train, test = train_test_split(data_clean, test_size=0.2, random_state=1)
     X_train = train['text'].to_list()
     X_test = test['text'].to_list()
-    y_train = train['target'].to_list()
-    y_test = test['target'].to_list()
+    y_train = train['class']
+    y_test = test['class']
 
-    X_combined = X_train + X_test
-    print(X_combined)
-
-    t = Tokenizer(num_words=10000)
-    t.fit_on_texts(X_combined)
+    print(y_train)
+    t = Tokenizer(num_words=2500)
+    t.fit_on_texts(data['text'].values)
     vocab_size = len(t.word_index) + 1
-    encoded_docs = t.texts_to_sequences(X_combined)
-    print('encoded'
-          '')
-    max_length = max([len(i) for i in X_combined])
+    encoded_docs = t.texts_to_sequences(data['text'].values)
+    print('encoded')
+    max_length = max([len(i) for i in data['text'].values])
     padded_docs = pad_sequences(encoded_docs, maxlen=max_length)
 
 
@@ -113,7 +116,8 @@ if __name__ == '__main__':
     e = Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=padded_docs.shape[1],
                   trainable=False)
     model.add(e)
-    model.add(LSTM(32))
+    model.add(SpatialDropout1D(0.4))
+    model.add(LSTM(32, dropout=0.2, recurrent_dropout=0.2))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['acc', f1_m, precision_m, recall_m])
     print(model.summary())
@@ -121,8 +125,11 @@ if __name__ == '__main__':
 
     X_train = pad_sequences(t.texts_to_sequences(X_train), maxlen=max_length)
     X_test = pad_sequences(t.texts_to_sequences(X_test), maxlen=max_length)
+    # y_train = pad_sequences(t.texts_to_sequences(y_train), maxlen=max_length)
+    # y_test = pad_sequences(t.texts_to_sequences(y_test), maxlen=max_length)
 
-    history = model.fit(X_train, y_train, epochs=2, verbose=1, validation_data=(X_test, y_test)),
+    # history = model.fit(X_train, y_train, epochs=3, verbose=1, validation_data=(X_test, y_test)),
+    history = model.fit(X_train, y_train, epochs=3, verbose=1),
     # evaluate the model
     train_loss, train_acc, train_f1_score, train_precision, train_recall = model.evaluate(X_train, y_train, verbose=1)
     test_loss, test_acc, test_f1_score, test_precision, test_recall = model.evaluate(X_test, y_test, verbose=1)
@@ -132,17 +139,17 @@ if __name__ == '__main__':
 
     print(classification_report(y_test, y_pred_bool))
     # plot loss during training
-    pyplot.subplot(211)
-    pyplot.title('Loss')
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
-    # plot accuracy during training
-    pyplot.subplot(212)
-    pyplot.title('Accuracy')
-    pyplot.plot(history.history['acc'], label='train')
-    pyplot.plot(history.history['val_acc'], label='test')
-    pyplot.legend()
+    # pyplot.subplot(211)
+    # pyplot.title('Loss')
+    # pyplot.plot(history.history['loss'], class='train')
+    # pyplot.plot(history.history['val_loss'], class='test')
+    # pyplot.legend()
+    # # plot accuracy during training
+    # pyplot.subplot(212)
+    # pyplot.title('Accuracy')
+    # pyplot.plot(history.history['acc'], class='train')
+    # pyplot.plot(history.history['val_acc'], class='test')
+    # pyplot.legend()
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
     model.save('lstm_' + c_time + '.h5')
