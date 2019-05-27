@@ -4,17 +4,21 @@ import nltk
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from matplotlib import pyplot
 from nltk.corpus import stopwords
-from nltk.stem import SnowballStemmer
 from nltk.tokenize import TweetTokenizer
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
-from sklearn.metrics import roc_auc_score, recall_score, precision_score
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
 from sklearn.metrics import roc_curve
 from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVC
 
@@ -109,31 +113,50 @@ if __name__ == '__main__':
 
     pipeline_svm = make_pipeline(vectorizer, SVC(probability=True, kernel="linear", class_weight="balanced",verbose=True))
 
-    grid_svm = GridSearchCV(pipeline_svm,
+    model = GridSearchCV(pipeline_svm,
                             param_grid={'svc__C': [0.01, 0.1, 1]},
                             cv=kfolds,
                             scoring="roc_auc",
                             verbose=1,
                             n_jobs=-1)
 
-    history = grid_svm.fit(X_train, y_train)
-    grid_svm.score(X_test, y_test)
+    history = model.fit(X_train, y_train)
+    print(model.score(X_test, y_test))
 
-    print(report_results(grid_svm.best_estimator_, X_test, y_test))
+    print(report_results(model.best_estimator_, X_test, y_test))
 
-    y_pred = grid_svm.predict(X_test)
+    y_pred = model.predict(X_test)
     # y_pred_bool = np.argmax(y_pred, axis=1)
 
     print(classification_report(y_test, y_pred))
-    # plot loss during training
-    pyplot.subplot(211)
-    pyplot.title('Loss')
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
-    # plot accuracy during training
-    pyplot.subplot(212)
-    pyplot.title('Accuracy')
-    pyplot.plot(history.history['acc'], label='train')
-    pyplot.plot(history.history['val_acc'], label='test')
-    pyplot.legend()
+    # predict probabilities for test set
+    yhat_probs = model.predict(X_test, verbose=0)
+    # predict crisp classes for test set
+    yhat_classes = model.predict_classes(X_test, verbose=0)
+    # reduce to 1d array
+    yhat_probs = yhat_probs[:, 0]
+    yhat_classes = yhat_classes[:, 0]
+
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_test, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # precision tp / (tp + fp)
+    precision = precision_score(y_test, yhat_classes)
+    print('Precision: %f' % precision)
+    # recall: tp / (tp + fn)
+    recall = recall_score(y_test, yhat_classes)
+    print('Recall: %f' % recall)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_test, yhat_classes)
+    print('F1 score: %f' % f1)
+
+    # kappa
+    kappa = cohen_kappa_score(y_test, yhat_classes)
+    print('Cohens kappa: %f' % kappa)
+    # ROC AUC
+    auc = roc_auc_score(y_test, yhat_probs)
+    print('ROC AUC: %f' % auc)
+    # confusion matrix
+    matrix = confusion_matrix(y_test, yhat_classes)
+    print(matrix)
+

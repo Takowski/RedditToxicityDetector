@@ -42,6 +42,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
 if __name__ == '__main__':
+
     # # fieldnames = ['id', 'class', 'name', 'archived', 'created_utc', 'num_comments', 'score', 'upvote_ratio', 'text']
     data = pd.read_csv("movie-pang02.csv")
     data = data.replace('Pos', '1')
@@ -67,6 +68,7 @@ if __name__ == '__main__':
     print(y_train)
     t = Tokenizer(num_words=5000)
     t.fit_on_texts(data['text'].values)
+
     vocab_size = len(t.word_index) + 1
 
     max_review_length = 1000
@@ -106,6 +108,7 @@ if __name__ == '__main__':
     model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
                         trainable=False))
     model.add(LSTM(128))
+
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())

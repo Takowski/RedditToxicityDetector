@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     word_emb_dim = 25
 
-    filename = 'C:/Users/takow/Documents/GitHub/RedditToxicityDetector/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
+    filename = 'C:/Users/Kailhan/PycharmProjects/RedditToxicityDetector/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
     print(filename)
     f = open(filename, encoding="utf8")
     for line in f:
@@ -118,7 +118,6 @@ if __name__ == '__main__':
     print(classification_report(y_test, y_pred_bool))
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
-    model.save('lstm_.h5')
 
     # predict probabilities for test set
     yhat_probs = model.predict(X_test_padded, verbose=0)
