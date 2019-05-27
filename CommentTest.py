@@ -27,6 +27,9 @@ if __name__ == '__main__':
             # if (i+1) % 10 == 0:
             #     print('done with: ' + str(i))
             print('done with: ' + str(i))
+            if submission.locked:
+                print(submission.title)
+                print()
             submission.comments.replace_more(limit=0)
             submission.comment_sort = 'top'
             comment_queue = submission.comments[:]
