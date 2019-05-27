@@ -81,10 +81,12 @@ def get_roc_curve(model, X, y):
     return fpr, tpr
 
 if __name__ == '__main__':
-    data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv.csv")
-    data.comments_body = data.comments_body.astype(str)
-    data.comments_body.apply(lambda x: preprocess_reviews(x))
-    data_clean = data.loc[:, ['locked', 'comments_body']]
+    # data = pd.read_csv("balanced_submissiondatabase1558829476.6550424 (2).csv")
+    # data.comments_body = data.comments_body.astype(str)
+    # data.comments_body.apply(lambda x: preprocess_reviews(x))
+    # data_clean = data.loc[:, ['locked', 'comments_body']]
+    # data_clean.to_csv('balanced_submissiondatabase1558829476.6550424_cleaned.csv', sep='\t', encoding='utf-8')
+    data_clean = pd.read_csv('balanced_submissiondatabase1558829476.6550424_cleaned.csv', sep='\t', encoding='utf-8')
     print(data_clean.head())
     train, test = train_test_split(data_clean, test_size=0.2, random_state=1)
     X_train = train['comments_body'].values
@@ -101,7 +103,7 @@ if __name__ == '__main__':
         ngram_range=(1, 1),
         stop_words=en_stopwords)
 
-    kfolds = StratifiedKFold(n_splits=5, shuffle=True, random_state=1)
+    kfolds = StratifiedKFold(n_splits=3, shuffle=True, random_state=1)
 
     np.random.seed(1)
 
@@ -120,9 +122,9 @@ if __name__ == '__main__':
     print(report_results(grid_svm.best_estimator_, X_test, y_test))
 
     y_pred = grid_svm.predict(X_test)
-    y_pred_bool = np.argmax(y_pred, axis=1)
+    # y_pred_bool = np.argmax(y_pred, axis=1)
 
-    print(classification_report(y_test, y_pred_bool))
+    print(classification_report(y_test, y_pred))
     # plot loss during training
     pyplot.subplot(211)
     pyplot.title('Loss')
