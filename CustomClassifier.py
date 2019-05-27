@@ -75,7 +75,7 @@ if __name__ == '__main__':
     X_combined = X_train + X_test
     print(X_combined)
 
-    t = Tokenizer(num_words=10000)
+    t = Tokenizer(num_words=1000)
     t.fit_on_texts(X_combined)
     vocab_size = len(t.word_index) + 1
     encoded_docs = t.texts_to_sequences(X_combined)
@@ -130,17 +130,17 @@ if __name__ == '__main__':
 
     print(classification_report(y_test, y_pred_bool))
     # plot loss during training
-    pyplot.subplot(211)
-    pyplot.title('Loss')
-    pyplot.plot(history.history['loss'], label='train')
-    pyplot.plot(history.history['val_loss'], label='test')
-    pyplot.legend()
-    # plot accuracy during training
-    pyplot.subplot(212)
-    pyplot.title('Accuracy')
-    pyplot.plot(history.history['acc'], label='train')
-    pyplot.plot(history.history['val_acc'], label='test')
-    pyplot.legend()
+    # pyplot.subplot(211)
+    # pyplot.title('Loss')
+    # pyplot.plot(history.history['loss'], label='train')
+    # pyplot.plot(history.history['val_loss'], label='test')
+    # pyplot.legend()
+    # # plot accuracy during training
+    # pyplot.subplot(212)
+    # pyplot.title('Accuracy')
+    # pyplot.plot(history.history['acc'], label='train')
+    # pyplot.plot(history.history['val_acc'], label='test')
+    # pyplot.legend()
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
     model.save('lstm_' + c_time + '.h5')
