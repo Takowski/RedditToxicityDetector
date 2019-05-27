@@ -1,5 +1,14 @@
 import time
-
+from sklearn.datasets import make_circles
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
+from keras.models import Sequential
+from keras.layers import Dense
 import numpy as np
 import pandas as pd
 from keras.layers import Dense
@@ -29,18 +38,36 @@ if __name__ == '__main__':
     t = Tokenizer()
     t.fit_on_texts(data['comments_body'].values)
     vocab_size = len(t.word_index) + 1
+    print(vocab_size)
 
     encoded_docs = t.texts_to_sequences(data['comments_body'].values)
     X_train_seq = t.texts_to_sequences(X_train)
     X_test_seq = t.texts_to_sequences(X_test)
     print('encoded')
 
-    max_review_length = 10
+    max_review_length = 1000
     # max_length = max([len(i) for i in X_combined])\
     max_length = max_review_length
     padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
     X_train_padded = pad_sequences(X_train_seq, maxlen=max_length, padding='post')
     X_test_padded = pad_sequences(X_test_seq, maxlen=max_length, padding='post')
+    print(len(X_train_padded))
+    lockedlist = y_train
+    locked_count = 0
+    nonlocked_count = 0
+    totalcount = 0
+    for status in lockedlist:
+        if status == True:
+            locked_count += 1
+        if status == False:
+            nonlocked_count += 1
+        totalcount += 1
+    print('locked_count')
+    print(locked_count)
+    print('nonlocked_count')
+    print(nonlocked_count)
+    print('totalcount')
+    print(totalcount)
 
 
     embeddings_index = dict()
@@ -74,11 +101,12 @@ if __name__ == '__main__':
     model = Sequential()
     model.add(Embedding(vocab_size, word_emb_dim, weights=[embedding_matrix], input_length=max_review_length,
                   trainable=False))
-    model.add(LSTM(100))
+    model.add(LSTM(128))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
-    history = model.fit(X_train_padded, y_train, nb_epoch=5, batch_size=64)
+
+    history = model.fit(X_train_padded, y_train, nb_epoch=20, batch_size=64)
     # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
     scores = model.evaluate(X_test_padded, y_test, verbose=0)
     # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)
@@ -90,4 +118,35 @@ if __name__ == '__main__':
     print(classification_report(y_test, y_pred_bool))
 
     c_time = str(time.strftime("%x %X", time.gmtime()))
-    model.save('lstm_' + c_time + '.h5')
+    model.save('lstm_.h5')
+
+    # predict probabilities for test set
+    yhat_probs = model.predict(X_test_padded, verbose=0)
+    # predict crisp classes for test set
+    yhat_classes = model.predict_classes(X_test_padded, verbose=0)
+    # reduce to 1d array
+    yhat_probs = yhat_probs[:, 0]
+    yhat_classes = yhat_classes[:, 0]
+
+    # accuracy: (tp + tn) / (p + n)
+    accuracy = accuracy_score(y_test, yhat_classes)
+    print('Accuracy: %f' % accuracy)
+    # precision tp / (tp + fp)
+    precision = precision_score(y_test, yhat_classes)
+    print('Precision: %f' % precision)
+    # recall: tp / (tp + fn)
+    recall = recall_score(y_test, yhat_classes)
+    print('Recall: %f' % recall)
+    # f1: 2 tp / (2 tp + fp + fn)
+    f1 = f1_score(y_test, yhat_classes)
+    print('F1 score: %f' % f1)
+
+    # kappa
+    kappa = cohen_kappa_score(y_test, yhat_classes)
+    print('Cohens kappa: %f' % kappa)
+    # ROC AUC
+    auc = roc_auc_score(y_test, yhat_probs)
+    print('ROC AUC: %f' % auc)
+    # confusion matrix
+    matrix = confusion_matrix(y_test, yhat_classes)
+    print(matrix)
