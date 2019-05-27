@@ -47,6 +47,7 @@ if __name__ == '__main__':
     data = pd.read_csv("movie-pang02.csv")
     data = data.replace('Pos', '1')
     data = data.replace('Neg', '0')
+    data['class'] = data['class'].convert_objects(convert_numeric=True)
 
     print(data.head())
 
@@ -62,8 +63,8 @@ if __name__ == '__main__':
     train, test = train_test_split(data, test_size=0.2, random_state=1)
     X_train = train['text'].to_list()
     X_test = test['text'].to_list()
-    y_train = train['class']
-    y_test = test['class']
+    y_train = train['class'].values
+    y_test = test['class'].values
 
     print(y_train)
     t = Tokenizer(num_words=5000)
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     print(model.summary())
 
-    history = model.fit(X_train_padded, y_train, nb_epoch=20, batch_size=64)
+    history = model.fit(X_train_padded, y_train, nb_epoch=10, batch_size=64)
     # model.fit(padded_docs, data['locked'].values, nb_epoch=3, batch_size=64)
     scores = model.evaluate(X_test_padded, y_test, verbose=0)
     # scores = model.evaluate(padded_docs, data['locked'].values, verbose=0)

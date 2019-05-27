@@ -52,23 +52,6 @@ if __name__ == '__main__':
     X_train_padded = pad_sequences(X_train_seq, maxlen=max_length, padding='post')
     X_test_padded = pad_sequences(X_test_seq, maxlen=max_length, padding='post')
     print(len(X_train_padded))
-    lockedlist = y_train
-    locked_count = 0
-    nonlocked_count = 0
-    totalcount = 0
-    for status in lockedlist:
-        if status == True:
-            locked_count += 1
-        if status == False:
-            nonlocked_count += 1
-        totalcount += 1
-    print('locked_count')
-    print(locked_count)
-    print('nonlocked_count')
-    print(nonlocked_count)
-    print('totalcount')
-    print(totalcount)
-
 
     embeddings_index = dict()
 

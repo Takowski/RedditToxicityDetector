@@ -12,3 +12,5 @@ glove.twitter.27B/glove.twitter.27B.25d.txt
 *.txt
 lstm_.h5
 *.xml___jb_old___
+lstm_.h5
+*.h5
