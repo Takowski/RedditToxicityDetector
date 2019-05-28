@@ -1,33 +1,23 @@
+import time
+
+import numpy as np
 from keras.datasets import imdb
 from keras.layers import Dense
 from keras.layers import Embedding
 from keras.layers import LSTM
 from keras.models import Sequential
-from keras.preprocessing import sequence
-from numpy import array
-import time
-from sklearn.datasets import make_circles
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import cohen_kappa_score
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import confusion_matrix
-from keras.models import Sequential
-from keras.layers import Dense
-import numpy as np
-import pandas as pd
-from keras.layers import Dense
-from keras.layers import Embedding
-from keras.layers import LSTM
-from keras.models import Sequential, load_model
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 from numpy import asarray
 from numpy import zeros
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import roc_auc_score
 
 if __name__ == '__main__':
 

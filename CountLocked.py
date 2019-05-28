@@ -1,10 +1,9 @@
 
-import praw
-import requests
-import time
 from collections import defaultdict
+
+import praw
+
 from PersonalSettingStuff import *
-import csv
 
 if __name__ == '__main__':
 
