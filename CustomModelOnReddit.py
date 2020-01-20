@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     word_emb_dim = 25
 
-    filename = 'C:/Users/Kailhan/PycharmProjects/RedditToxicityDetector/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
+    filename = 'C:/Users/Kailhan/PycharmProjects/RedditSaltSignaller/glove.twitter.27B.' + str(word_emb_dim) + 'd.txt'
     print(filename)
     f = open(filename, encoding="utf8")
     for line in f:

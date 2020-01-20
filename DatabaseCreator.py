@@ -1,7 +1,7 @@
 import pandas as pd
 import glob
 if __name__ == '__main__':
-    path = r'C:\Users\Kailhan\PycharmProjects\RedditToxicityDetector' # use your path
+    path = r'C:\Users\Kailhan\PycharmProjects\RedditSaltSignaller' # use your path
     all_files = glob.glob(path + "/*.csv")
 
     li = []
